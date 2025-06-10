@@ -1,23 +1,33 @@
 "use client"
 
 import { Search } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Label } from "@/components/ui/label"
 import { SidebarInput } from "@/components/ui/sidebar"
 
+import { isValidNRIC } from "@/lib/utils" 
+
 export function SearchForm({ ...props }: React.ComponentProps<"form">) {
 
   const [search, setSearch] = useState("")
   const router = useRouter()
+  
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (search == "") {
+   e.preventDefault()
+    
+    if (search.trim() === "") {
+      
       return
     }
-    console.log("HIs")
+
+    if (!isValidNRIC(search)) {
+      setSearch("")
+      alert("Please enter a valid NRIC format (e.g., S1234567A)") 
+      return
+    }
     router.push(`/search?nric=${encodeURIComponent(search)}`)
   }
 
@@ -29,7 +39,7 @@ export function SearchForm({ ...props }: React.ComponentProps<"form">) {
         </Label>
         <SidebarInput
           id="search"
-          placeholder="Type to search..."
+          placeholder="NRIC to search..."
           className="h-8 pl-7"
           onChange={(e) => setSearch(e.target.value)}
           value={search}

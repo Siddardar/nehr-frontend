@@ -9,7 +9,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="[--header-height:calc(--spacing(14))]">
-        <SidebarProvider className="flex flex-col min-h-screen">
+        <SidebarProvider className="flex flex-col min-h-screen" open={false}>
           <SiteHeader />
           <div className="flex flex-1">
             <AppSidebar />

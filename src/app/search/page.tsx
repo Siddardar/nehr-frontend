@@ -2,12 +2,15 @@
 import React, { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Heart, Wind, Brain, Thermometer, Activity, Calendar, User, Phone, Mail, MapPin  } from "lucide-react"
-import { AttributeList } from "@/components/checkbox"
+import { TagList } from "@/components/checkbox"
+import LoadingPage from "@/components/loading"
 
 export type Tag = {
     TagID: number,
     TagName: string
 }
+
+export type TagWithIcon = Tag & { icon?: any }
 
 type PatientInfo = {
     MPIID: string,
@@ -22,7 +25,7 @@ export default function Page() {
 
     const [patient, setPatient] = useState<PatientInfo | null>(null)
     const [loading, setLoading] = useState(false)
-    const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+    const [selectedTags, setSelectedTags] = useState<number[]>([])
 
     useEffect(() => {
         if (param) {
@@ -32,7 +35,7 @@ export default function Page() {
                 const res: PatientInfo = {
                     "MPIID":"100014427",
                     "FullName":"John Smith",
-                    "NRIC":"063070516",
+                    "NRIC": param,
                     "Tags":[
                         {"TagID":3,"TagName":"APM_Deceased"}
                     ]
@@ -42,7 +45,12 @@ export default function Page() {
             }, 100) // Simulate network delay
         }
         console.log("search:" + param)
+
     }, [param])
+
+    useEffect(() => {
+      console.log("Selected Tags:", selectedTags)
+    }, [selectedTags])
 
     if (!param) {
         return <h1>INVALID</h1>
@@ -50,22 +58,38 @@ export default function Page() {
 
     // Add loading state
     if (loading || !patient) {
-        return <div>Loading patient data...</div>
+        return <LoadingPage />
     }
 
-    const tagData: Tag[] = [
-      {"TagID": 1, "TagName": "VIP"}, 
-      {"TagID": 2, "TagName": "Deceased"},
-      {"TagID": 3, "TagName": "Inprisoned"},
-      {"TagID": 4, "TagName": "Critical"},
-      {"TagID": 5, "TagName": "Doctor Assigned"},
+    const tagData: TagWithIcon[] = [
+      {"TagID": 1, "TagName": "VIP", "icon": Heart}, 
+      {"TagID": 2, "TagName": "Deceased", "icon": Wind},
+      {"TagID": 3, "TagName": "Inprisoned", "icon": Brain},
+      {"TagID": 4, "TagName": "Critical", "icon": Thermometer},
+      {"TagID": 5, "TagName": "Doctor Assigned", "icon": Activity},
+      {"TagID": 6, "TagName": "Follow Up", "icon": Calendar},
+      {"TagID": 7, "TagName": "Contacted", "icon": User},
+      {"TagID": 8, "TagName": "Not Contacted", "icon": Phone},
+      {"TagID": 9, "TagName": "Email Sent", "icon": Mail},
+      {"TagID": 10, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 11, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 12, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 13, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 14, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 15, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 16, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 17, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 18, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 19, "TagName": "Address Verified", "icon": MapPin},
+      {"TagID": 20, "TagName": "Address Verified", "icon": MapPin}
+      
     ]
 
-    const handleTagToggle = (newT: Tag) => {
+    const handleTagToggle = (toggleTagID: number) => {
       setSelectedTags(prev => 
-        prev.includes(newT)
-        ? prev.filter(t => t.TagID !== newT.TagID)
-        : [...prev, newT]
+        prev.includes(toggleTagID)
+        ? prev.filter(t => t !== toggleTagID)
+        : [...prev, toggleTagID]
       )
     }
 
@@ -83,7 +107,8 @@ export default function Page() {
                         </div>
                         <div>
                         <h1 className="text-3xl font-bold text-gray-900">{patient.FullName}</h1>
-                        <p className="text-gray-600">MPIID: {patient.MPIID}</p>
+                        <p className="text-gray-600">MPIID: {patient.MPIID} / NRIC: {patient.NRIC}</p>
+                        
                         </div>
                     </div>
                     </div>
@@ -93,59 +118,19 @@ export default function Page() {
 
 
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {/* Sidebar */}
-              <div className="lg:w-80">
-              {/* Patient Info Card */}
-              <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Information</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Calendar className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Age</p>
-                      <p className="font-medium">test years old</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Gender</p>
-                      <p className="font-medium">test</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Phone</p>
-                      <p className="font-medium">test</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Email</p>
-                      <p className="font-medium text-blue-600">test</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <MapPin className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Address</p>
-                      <p className="font-medium">test</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              </div>
+            <div className="w-2/3 mx-auto py-4">
 
-              <AttributeList
-              title={"test"}
-              
-              />
+              <TagList
+                title="Patient Tags"
+                tags={tagData}
+                selectedTags={selectedTags}
+                onTagToggle={handleTagToggle}
+                showCounter={true}
+                />
+                
             </div>
-        
-        
+
+            
         
         </div>
 
