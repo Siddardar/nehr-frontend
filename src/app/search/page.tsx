@@ -25,28 +25,63 @@ export default function Page() {
 
     const [patient, setPatient] = useState<PatientInfo | null>(null)
     const [loading, setLoading] = useState(false)
-    const [selectedTags, setSelectedTags] = useState<number[]>([])
+    const [selectedTags, setSelectedTags] = useState<TagWithIcon[]>([])
+    const [tagData, setTagData] = useState<TagWithIcon[]>([])
 
     useEffect(() => {
-        if (param) {
-            setLoading(true)
-            // Simulate async fetch
-            setTimeout(() => {
-                const res: PatientInfo = {
-                    "MPIID":"100014427",
-                    "FullName":"John Smith",
-                    "NRIC": param,
-                    "Tags":[
-                        {"TagID":3,"TagName":"APM_Deceased"}
-                    ]
-                }
-                setPatient(res)
-                setLoading(false)
-            }, 100) // Simulate network delay
-        }
-        console.log("search:" + param)
+      if (!param) return;
 
-    }, [param])
+      setLoading(true);
+
+      Promise.all([
+        fetch(`http://localhost:52775/nehrfe/demo/${param}`)
+          .then(res => {
+            if (!res.ok) throw new Error(`Patient fetch failed (${res.status})`);
+            return res.json() as Promise<PatientInfo>;
+          }),
+        fetch(`http://localhost:52775/nehrfe/demo/tags`)
+          .then(res => {
+            if (!res.ok) throw new Error(`Tags fetch failed (${res.status})`);
+            return res.json() as Promise<TagWithIcon[]>;
+          })
+      ])
+        .then(([patientData, tagsData]) => {
+          setPatient(patientData);
+          setTagData(tagsData);
+          const tagsWithHeart: TagWithIcon[] = patientData.Tags.map(tag => (
+          {
+            ...tag,
+            icon: Heart
+          }));
+
+          setSelectedTags(tagsWithHeart);
+        })
+        .catch(err => {
+          console.error(err);
+          setPatient(null);
+          setTagData([]);
+        })
+        .finally(() => {
+          setLoading(false)
+          
+        
+        });
+
+    }, [param]);
+
+    
+    // useEffect(() => {
+    //    const res: PatientInfo = {
+    //                 "MPIID":"100014427",
+    //                 "FullName":"John Smith",
+    //                 "NRIC": "TEST",
+    //                 "Tags":[
+    //                     {"TagID":3,"TagName":"APM_Deceased"}
+    //                 ]
+    //             }
+    //     setPatient(res)
+
+    // }, [])
 
     useEffect(() => {
       console.log("Selected Tags:", selectedTags)
@@ -61,37 +96,37 @@ export default function Page() {
         return <LoadingPage />
     }
 
-    const tagData: TagWithIcon[] = [
-      {"TagID": 1, "TagName": "VIP", "icon": Heart}, 
-      {"TagID": 2, "TagName": "Deceased", "icon": Wind},
-      {"TagID": 3, "TagName": "Inprisoned", "icon": Brain},
-      {"TagID": 4, "TagName": "Critical", "icon": Thermometer},
-      {"TagID": 5, "TagName": "Doctor Assigned", "icon": Activity},
-      {"TagID": 6, "TagName": "Follow Up", "icon": Calendar},
-      {"TagID": 7, "TagName": "Contacted", "icon": User},
-      {"TagID": 8, "TagName": "Not Contacted", "icon": Phone},
-      {"TagID": 9, "TagName": "Email Sent", "icon": Mail},
-      {"TagID": 10, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 11, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 12, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 13, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 14, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 15, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 16, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 17, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 18, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 19, "TagName": "Address Verified", "icon": MapPin},
-      {"TagID": 20, "TagName": "Address Verified", "icon": MapPin}
+    // const tagData: TagWithIcon[] = [
+    //   {"TagID": 1, "TagName": "VIP", "icon": Heart}, 
+    //   {"TagID": 2, "TagName": "Deceased", "icon": Wind},
+    //   {"TagID": 3, "TagName": "Inprisoned", "icon": Brain},
+    //   {"TagID": 4, "TagName": "Critical", "icon": Thermometer},
+    //   {"TagID": 5, "TagName": "Doctor Assigned", "icon": Activity},
+    //   {"TagID": 6, "TagName": "Follow Up", "icon": Calendar},
+    //   {"TagID": 7, "TagName": "Contacted", "icon": User},
+    //   {"TagID": 8, "TagName": "Not Contacted", "icon": Phone},
+    //   {"TagID": 9, "TagName": "Email Sent", "icon": Mail},
+    //   {"TagID": 10, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 11, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 12, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 13, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 14, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 15, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 16, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 17, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 18, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 19, "TagName": "Address Verified", "icon": MapPin},
+    //   {"TagID": 20, "TagName": "Address Verified", "icon": MapPin}
       
-    ]
+    // ]
 
-    const handleTagToggle = (toggleTagID: number) => {
-      setSelectedTags(prev => 
-        prev.includes(toggleTagID)
-        ? prev.filter(t => t !== toggleTagID)
-        : [...prev, toggleTagID]
-      )
-    }
+  const handleTagToggle = (toggleTag: TagWithIcon) => {
+    setSelectedTags(prev =>
+      prev.some(t => t.TagID === toggleTag.TagID)
+        ? prev.filter(t => t.TagID !== toggleTag.TagID)
+        : [...prev, toggleTag]
+    );
+  };
 
     
     return (

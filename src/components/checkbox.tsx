@@ -15,8 +15,8 @@ import { Input } from "./ui/input";
 type TagList = {
   title: string;
   tags: TagWithIcon[];
-  selectedTags: number[];
-  onTagToggle: (id: number) => void;
+  selectedTags: TagWithIcon[];
+  onTagToggle: (t: TagWithIcon) => void;
   variant?: "default" | "compact" | "large";
   showCounter?: boolean;
   itemsPerPage?: number;
@@ -160,13 +160,13 @@ export const TagList = ({
           </div>
         ) : (
           currentTags.map((tag) => {
-            const isSelected = selectedTags.includes(tag.TagID);
+            const isSelected = selectedTags.some(t => t.TagID === tag.TagID);
             const Icon = tag.icon;
             
             return (
               <div
                 key={tag.TagID}
-                onClick={() => onTagToggle(tag.TagID)}
+                onClick={() => onTagToggle(tag)}
                 className={`${styles.item} cursor-pointer transition-all duration-200 hover:bg-gray-50 ${
                   isSelected ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
                 }`}
