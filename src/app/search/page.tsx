@@ -5,6 +5,8 @@ import { Heart, Wind, Brain, Thermometer, Activity, Calendar, User, Phone, Mail,
 import { TagList } from "@/components/checkbox"
 import LoadingPage from "@/components/loading"
 
+import { useRouter } from "next/navigation"
+
 export type Tag = {
     TagID: number,
     TagName: string
@@ -28,6 +30,8 @@ export default function Page() {
     const [selectedTags, setSelectedTags] = useState<Tag[]>([])
     const [tagData, setTagData] = useState<Tag[]>([])
 
+    const router = useRouter()
+
     useEffect(() => {
       if (!param) return;
 
@@ -38,7 +42,10 @@ export default function Page() {
       Promise.all([
         fetch(`/nehrfe/demo/patient/${param}`)
           .then(res => {
-            if (!res.ok) throw new Error(`Patient fetch failed (${res.status})`);
+            if (!res.ok) {
+              router.push("/not-found");
+              throw new Error("patient not found")
+            }
             return res.json() as Promise<PatientInfo>;
           }),
         fetch(`/nehrfe/demo/tags`)
@@ -91,7 +98,7 @@ export default function Page() {
     }, [selectedTags])
 
     if (!param) {
-        return <h1>INVALID</h1>
+        router.push('/invalid')
     }
 
     // Add loading state
