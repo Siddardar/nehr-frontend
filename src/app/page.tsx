@@ -55,7 +55,7 @@ export default function Home() {
       
       <div className="relative flex flex-col items-center justify-center h-[calc(100vh-4rem)] p-4">
         {/* Header Section */}
-        <div className="text-center mb-12 max-w-2xl">
+        <div className="text-center mb-5 max-w-2xl">
           <div className="flex justify-center mb-6">
             <div className="bg-blue-100 p-4 rounded-full">
               <Users className="w-12 h-12 text-blue-600" />
@@ -120,10 +120,6 @@ export default function Home() {
           </form>
         </div>
 
-        {/* Footer */}
-        <div className="mt-10 text-center text-gray-500 text-sm">
-          <p>Secure • HIPAA Compliant • InterSystems HealthShare</p>
-        </div>
       </div>
     </div>
   )
