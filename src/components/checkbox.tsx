@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { useState } from "react";
-import { TagWithIcon } from "@/app/search/page";
+import { Tag } from "@/app/search/page";
 import {
   Pagination,
   PaginationContent,
@@ -12,11 +12,13 @@ import {
 } from "@/components/ui/pagination"
 import { Input } from "./ui/input";
 
+import { Heart } from "lucide-react";
+
 type TagList = {
   title: string;
-  tags: TagWithIcon[];
-  selectedTags: TagWithIcon[];
-  onTagToggle: (t: TagWithIcon) => void;
+  tags: Tag[];
+  selectedTags: Tag[];
+  onTagToggle: (t: Tag) => void;
   variant?: "default" | "compact" | "large";
   showCounter?: boolean;
   itemsPerPage?: number;
@@ -67,7 +69,7 @@ export const TagList = ({
   const filteredTags = tags.filter(tag =>
     tag.TagName.toLowerCase().startsWith(searchTerm.toLowerCase())
   );
-  
+    
   // Pagination calculations (using filtered tags)
   const totalPages = Math.ceil(filteredTags.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -161,7 +163,6 @@ export const TagList = ({
         ) : (
           currentTags.map((tag) => {
             const isSelected = selectedTags.some(t => t.TagID === tag.TagID);
-            const Icon = tag.icon;
             
             return (
               <div
@@ -178,7 +179,7 @@ export const TagList = ({
                       ? 'bg-blue-500 text-white' 
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    <Icon className="w-5 h-5" />
+                    <Heart className="w-5 h-5" />
                   </div>
                   
                   {/* Content */}

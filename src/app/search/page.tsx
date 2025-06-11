@@ -25,16 +25,18 @@ export default function Page() {
 
     const [patient, setPatient] = useState<PatientInfo | null>(null)
     const [loading, setLoading] = useState(false)
-    const [selectedTags, setSelectedTags] = useState<TagWithIcon[]>([])
-    const [tagData, setTagData] = useState<TagWithIcon[]>([])
+    const [selectedTags, setSelectedTags] = useState<Tag[]>([])
+    const [tagData, setTagData] = useState<Tag[]>([])
 
     useEffect(() => {
       if (!param) return;
 
       setLoading(true);
+      console.log(param)
+      console.log(`http://localhost:52775/nehrfe/demo/patient/${param}`)
 
       Promise.all([
-        fetch(`http://localhost:52775/nehrfe/demo/${param}`)
+        fetch(`http://localhost:52775/nehrfe/demo/patient/${param}`)
           .then(res => {
             if (!res.ok) throw new Error(`Patient fetch failed (${res.status})`);
             return res.json() as Promise<PatientInfo>;
@@ -48,13 +50,12 @@ export default function Page() {
         .then(([patientData, tagsData]) => {
           setPatient(patientData);
           setTagData(tagsData);
-          const tagsWithHeart: TagWithIcon[] = patientData.Tags.map(tag => (
-          {
-            ...tag,
-            icon: Heart
-          }));
 
-          setSelectedTags(tagsWithHeart);
+          setSelectedTags(patientData.Tags);
+
+          console.log(patientData)
+          console.log(tagsData)
+          console.log(selectedTags)
         })
         .catch(err => {
           console.error(err);
@@ -85,6 +86,8 @@ export default function Page() {
 
     useEffect(() => {
       console.log("Selected Tags:", selectedTags)
+
+
     }, [selectedTags])
 
     if (!param) {
@@ -120,12 +123,53 @@ export default function Page() {
       
     // ]
 
-  const handleTagToggle = (toggleTag: TagWithIcon) => {
-    setSelectedTags(prev =>
-      prev.some(t => t.TagID === toggleTag.TagID)
-        ? prev.filter(t => t.TagID !== toggleTag.TagID)
-        : [...prev, toggleTag]
-    );
+  const handleTagToggle = async (toggleTag: Tag) => {
+    const isCurrentlySelected = selectedTags.some(t => t.TagID === toggleTag.TagID);
+    
+    try {
+      if (isCurrentlySelected) {
+        // Removing tag - make API call first
+        const response = await fetch('http://localhost:52775/nehrfe/demo/patient/removeTag', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            MPIID: patient.MPIID, 
+            tagID: toggleTag.TagID,
+            tagName: toggleTag.TagName
+          })
+        });
+        
+        if (response.ok) {
+          setSelectedTags(prev => prev.filter(t => t.TagID !== toggleTag.TagID));
+          console.log("remove ok")
+        } else {
+          console.error('Failed to remove tag');
+          
+        }
+      } else {       
+        const response = await fetch('http://localhost:52775/nehrfe/demo/patient/addTag', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            MPIID: patient.MPIID, 
+            tagID: toggleTag.TagID,
+            tagName: toggleTag.TagName
+          })
+        });
+        if (response.ok) {
+          setSelectedTags(prev => [...prev, toggleTag]);
+          console.log("add ok")
+        } else {
+          console.error('Failed to add tag');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling tag:', error);
+    }
   };
 
     

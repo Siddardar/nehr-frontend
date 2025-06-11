@@ -6,7 +6,5 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const isValidNRIC = (nric: string) => {
-  // Basic NRIC format validation (Singapore)
-  const nricRegex = /^[STFG]\d{7}[A-Z]$/i
-  return nricRegex.test(nric.trim())
+  return true
 }
