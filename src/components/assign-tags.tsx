@@ -1,56 +1,19 @@
 "use client"
 import React, { useState } from 'react';
 import { ChevronRight, ChevronLeft, ChevronsRight, ChevronsLeft } from 'lucide-react';
+import { Tag } from '@/app/search/page';
 
-// Type definition
-type Tag = {
-  TagID: number;
-  TagName: string;
-};
-
-// Props interface
 interface PatientTagSelectorProps {
   availableTags: Tag[];
   selectedTags: Tag[];
   onTagsChange: (tags: Tag[]) => void;
 }
 
-// Sample data - replace with your actual data
-const sampleAvailableTags: Tag[] = [
-  { TagID: 1, TagName: '%DBIRole_Client' },
-  { TagID: 2, TagName: '%DB_%DEFAULT' },
-  { TagID: 3, TagName: '%DB_DEMOSECONDARY' },
-  { TagID: 4, TagName: '%DB_ENSLIB' },
-  { TagID: 5, TagName: '%DB_FHIRDEMOX0001R' },
-  { TagID: 6, TagName: '%DB_FHIRDEMOX0001V' },
-  { TagID: 7, TagName: '%DB_FHIRDEMOX0002R' },
-  { TagID: 8, TagName: '%DB_FHIRDEMOX0002V' },
-  { TagID: 9, TagName: '%DB_HSCUSTOM' },
-  { TagID: 10, TagName: '%DB_HSLIB' },
-  { TagID: 11, TagName: '%DB_HSSYS' },
-  { TagID: 12, TagName: '%DB_HSSYSLOCALTEMP' },
-  { TagID: 13, TagName: '%DB_IRISAUDIT' },
-  { TagID: 14, TagName: '%DB_IRISLIB' },
-  { TagID: 15, TagName: '%DB_IRISLOCALDATA' },
-  { TagID: 16, TagName: '%DB_IRISMETRICS' },
-  { TagID: 17, TagName: '%DB_IRISSYS' },
-  { TagID: 18, TagName: '%DB_IRISTEMP' },
-  { TagID: 19, TagName: '%DB_USER' },
-  { TagID: 20, TagName: '%Developer' },
-  { TagID: 21, TagName: '%EnsRole_Administrator' },
-  { TagID: 22, TagName: '%EnsRole_AlertAdministrator' },
-  { TagID: 23, TagName: '%EnsRole_AlertOperator' },
-  { TagID: 24, TagName: '%EnsRole_Developer' },
-  { TagID: 25, TagName: '%EnsRole_InteropEditorsAPI' },
-  { TagID: 26, TagName: '%EnsRole_Monitor' },
-  { TagID: 27, TagName: '%EnsRole_Operator' },
-  { TagID: 28, TagName: '%EnsRole_PubSubDeveloper' },
-  { TagID: 29, TagName: '%EnsRole_RegistryManager' }
-];
+
 
 export default function PatientTagSelector({ 
-  availableTags = sampleAvailableTags, 
-  selectedTags = [], 
+  availableTags, 
+  selectedTags, 
   onTagsChange 
 }: PatientTagSelectorProps) {
   const [available, setAvailable] = useState<Tag[]>(availableTags);

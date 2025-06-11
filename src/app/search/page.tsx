@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Heart, Wind, Brain, Thermometer, Activity, Calendar, User, Phone, Mail, MapPin  } from "lucide-react"
-import { TagList } from "@/components/checkbox"
+import PatientTagSelector  from "@/components/assign-tags"
 import LoadingPage from "@/components/loading"
 
 import { useRouter } from "next/navigation"
@@ -21,6 +21,16 @@ type PatientInfo = {
     Tags: Tag[]
 }
 
+const sampleAvailableTags = [
+  { TagID: 1, TagName: '%DBIRole_Client' },
+  { TagID: 2, TagName: '%DB_%DEFAULT' },
+  { TagID: 3, TagName: '%DB_DEMOSECONDARY' },
+  { TagID: 4, TagName: '%DB_ENSLIB' },
+  { TagID: 5, TagName: '%DB_FHIRDEMOX0001R' },
+  { TagID: 6, TagName: '%DB_FHIRDEMOX0001V' },
+  { TagID: 7, TagName: '%DB_FHIRDEMOX0002R' },
+]
+
 export default function Page() {
     const searchParams = useSearchParams()
     const param = searchParams.get("nric") 
@@ -29,6 +39,7 @@ export default function Page() {
     const [loading, setLoading] = useState(false)
     const [selectedTags, setSelectedTags] = useState<Tag[]>([])
     const [tagData, setTagData] = useState<Tag[]>([])
+    const [availableTags, setAvailableTags] = useState<Tag[]>([])
 
     const router = useRouter()
 
@@ -36,8 +47,7 @@ export default function Page() {
       if (!param) return;
 
       setLoading(true);
-      console.log(param)
-      console.log(`/nehrfe/demo/patient/${param}`)
+    
 
       Promise.all([
         fetch(`/nehrfe/demo/patient/${param}`)
@@ -58,11 +68,17 @@ export default function Page() {
           setPatient(patientData);
           setTagData(tagsData);
 
-          setSelectedTags(patientData.Tags);
-
-          console.log(patientData)
-          console.log(tagsData)
-          console.log(selectedTags)
+          if (patientData.Tags == undefined || patientData.Tags.length === 0) {
+            setSelectedTags([]);
+            setAvailableTags(tagsData);
+          } else {
+            const availableTags = tagsData.filter(tag => 
+              !patientData.Tags.some(patientTag => patientTag.TagID === tag.TagID)
+            );
+            setSelectedTags(patientData.Tags);
+            setAvailableTags(availableTags);
+          }
+          
         })
         .catch(err => {
           console.error(err);
@@ -77,26 +93,6 @@ export default function Page() {
 
     }, [param]);
 
-    
-    // useEffect(() => {
-    //    const res: PatientInfo = {
-    //                 "MPIID":"100014427",
-    //                 "FullName":"John Smith",
-    //                 "NRIC": "TEST",
-    //                 "Tags":[
-    //                     {"TagID":3,"TagName":"APM_Deceased"}
-    //                 ]
-    //             }
-    //     setPatient(res)
-
-    // }, [])
-
-    useEffect(() => {
-      console.log("Selected Tags:", selectedTags)
-
-
-    }, [selectedTags])
-
     if (!param) {
         router.push('/invalid')
     }
@@ -106,56 +102,20 @@ export default function Page() {
         return <LoadingPage />
     }
 
-    // const tagData: TagWithIcon[] = [
-    //   {"TagID": 1, "TagName": "VIP", "icon": Heart}, 
-    //   {"TagID": 2, "TagName": "Deceased", "icon": Wind},
-    //   {"TagID": 3, "TagName": "Inprisoned", "icon": Brain},
-    //   {"TagID": 4, "TagName": "Critical", "icon": Thermometer},
-    //   {"TagID": 5, "TagName": "Doctor Assigned", "icon": Activity},
-    //   {"TagID": 6, "TagName": "Follow Up", "icon": Calendar},
-    //   {"TagID": 7, "TagName": "Contacted", "icon": User},
-    //   {"TagID": 8, "TagName": "Not Contacted", "icon": Phone},
-    //   {"TagID": 9, "TagName": "Email Sent", "icon": Mail},
-    //   {"TagID": 10, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 11, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 12, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 13, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 14, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 15, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 16, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 17, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 18, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 19, "TagName": "Address Verified", "icon": MapPin},
-    //   {"TagID": 20, "TagName": "Address Verified", "icon": MapPin}
-      
-    // ]
-
-  const handleTagToggle = async (toggleTag: Tag) => {
-    const isCurrentlySelected = selectedTags.some(t => t.TagID === toggleTag.TagID);
+  const handleTagToggle = async (newSelectedTags: Tag[]) => {
+    // Find tags that were added (in newSelectedTags but not in current selectedTags)
+    const tagsToAdd = newSelectedTags.filter(newTag => 
+      !selectedTags.some(currentTag => currentTag.TagID === newTag.TagID)
+    );
     
-    try {
-      if (isCurrentlySelected) {
-        // Removing tag - make API call first
-        const response = await fetch('/nehrfe/demo/patient/removeTag', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            MPIID: patient.MPIID, 
-            tagID: toggleTag.TagID,
-            tagName: toggleTag.TagName
-          })
-        });
-        
-        if (response.ok) {
-          setSelectedTags(prev => prev.filter(t => t.TagID !== toggleTag.TagID));
-          console.log("remove ok")
-        } else {
-          console.error('Failed to remove tag');
-          
-        }
-      } else {       
+    // Find tags that were removed (in current selectedTags but not in newSelectedTags)
+    const tagsToRemove = selectedTags.filter(currentTag => 
+      !newSelectedTags.some(newTag => newTag.TagID === currentTag.TagID)
+    );
+
+    // Process additions
+    for (const tagToAdd of tagsToAdd) {
+      try {
         const response = await fetch('/nehrfe/demo/patient/addTag', {
           method: 'POST',
           headers: {
@@ -163,23 +123,60 @@ export default function Page() {
           },
           body: JSON.stringify({
             MPIID: patient.MPIID, 
-            tagID: toggleTag.TagID,
-            tagName: toggleTag.TagName
+            tagID: tagToAdd.TagID,
+            tagName: tagToAdd.TagName
           })
         });
+        
         if (response.ok) {
-          setSelectedTags(prev => [...prev, toggleTag]);
-          console.log("add ok")
+          console.log("add ok");
         } else {
-          console.error('Failed to add tag');
+          console.error('Failed to add tag:', tagToAdd.TagName);
+          return; // Stop processing if an error occurs
         }
+      } catch (error) {
+        console.error('Error adding tag:', error);
+        return; // Stop processing if an error occurs
       }
-    } catch (error) {
-      console.error('Error toggling tag:', error);
     }
-  };
 
+    // Process removals
+    for (const tagToRemove of tagsToRemove) {
+      try {
+        const response = await fetch('/nehrfe/demo/patient/removeTag', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            MPIID: patient.MPIID, 
+            tagID: tagToRemove.TagID,
+            tagName: tagToRemove.TagName
+          })
+        });
+        
+        if (response.ok) {
+          console.log("remove ok");
+        } else {
+          console.error('Failed to remove tag:', tagToRemove.TagName);
+          return; // Stop processing if an error occurs
+        }
+      } catch (error) {
+        console.error('Error removing tag:', error);
+        return; // Stop processing if an error occurs
+      }
+    }
+
+    // Only update state if all API calls were successful
+    setSelectedTags(newSelectedTags);
     
+    // Update available tags
+    const newAvailableTags = tagData.filter(tag => 
+      !newSelectedTags.some(selectedTag => selectedTag.TagID === tag.TagID)
+    );
+    setAvailableTags(newAvailableTags);
+  }
+
     return (
         <div className="h-[calc(100vh-4rem)] bg-gray-50">
             {/* Header */}
@@ -203,19 +200,13 @@ export default function Page() {
             </div>
 
 
-
-            <div className="w-2/3 mx-auto py-4">
-
-              <TagList
-                title="Patient Tags"
-                tags={tagData}
-                selectedTags={selectedTags}
-                onTagToggle={handleTagToggle}
-                showCounter={true}
-                />
-                
+            <div>
+            <PatientTagSelector
+              availableTags={availableTags}
+              selectedTags={selectedTags}
+              onTagsChange={handleTagToggle}
+            />
             </div>
-
             
         
         </div>
