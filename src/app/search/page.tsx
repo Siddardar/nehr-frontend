@@ -33,15 +33,15 @@ export default function Page() {
 
       setLoading(true);
       console.log(param)
-      console.log(`http://localhost:52775/nehrfe/demo/patient/${param}`)
+      console.log(`/nehrfe/demo/patient/${param}`)
 
       Promise.all([
-        fetch(`http://localhost:52775/nehrfe/demo/patient/${param}`)
+        fetch(`/nehrfe/demo/patient/${param}`)
           .then(res => {
             if (!res.ok) throw new Error(`Patient fetch failed (${res.status})`);
             return res.json() as Promise<PatientInfo>;
           }),
-        fetch(`http://localhost:52775/nehrfe/demo/tags`)
+        fetch(`/nehrfe/demo/tags`)
           .then(res => {
             if (!res.ok) throw new Error(`Tags fetch failed (${res.status})`);
             return res.json() as Promise<TagWithIcon[]>;
@@ -129,7 +129,7 @@ export default function Page() {
     try {
       if (isCurrentlySelected) {
         // Removing tag - make API call first
-        const response = await fetch('http://localhost:52775/nehrfe/demo/patient/removeTag', {
+        const response = await fetch('/nehrfe/demo/patient/removeTag', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ export default function Page() {
           
         }
       } else {       
-        const response = await fetch('http://localhost:52775/nehrfe/demo/patient/addTag', {
+        const response = await fetch('/nehrfe/demo/patient/addTag', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
