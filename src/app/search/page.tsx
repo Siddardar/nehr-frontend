@@ -1,7 +1,6 @@
 "use client"
 import React, { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Heart, Wind, Brain, Thermometer, Activity, Calendar, User, Phone, Mail, MapPin  } from "lucide-react"
 import PatientTagSelector  from "@/components/assign-tags"
 import LoadingPage from "@/components/loading"
 
@@ -12,24 +11,12 @@ export type Tag = {
     TagName: string
 }
 
-export type TagWithIcon = Tag & { icon?: any }
-
 type PatientInfo = {
     MPIID: string,
     FullName: string,
     NRIC: string,
     Tags: Tag[]
 }
-
-const sampleAvailableTags = [
-  { TagID: 1, TagName: '%DBIRole_Client' },
-  { TagID: 2, TagName: '%DB_%DEFAULT' },
-  { TagID: 3, TagName: '%DB_DEMOSECONDARY' },
-  { TagID: 4, TagName: '%DB_ENSLIB' },
-  { TagID: 5, TagName: '%DB_FHIRDEMOX0001R' },
-  { TagID: 6, TagName: '%DB_FHIRDEMOX0001V' },
-  { TagID: 7, TagName: '%DB_FHIRDEMOX0002R' },
-]
 
 export default function Page() {
     const searchParams = useSearchParams()
@@ -61,7 +48,7 @@ export default function Page() {
         fetch(`/nehrfe/demo/tags`)
           .then(res => {
             if (!res.ok) throw new Error(`Tags fetch failed (${res.status})`);
-            return res.json() as Promise<TagWithIcon[]>;
+            return res.json() as Promise<Tag[]>;
           })
       ])
         .then(([patientData, tagsData]) => {
@@ -112,60 +99,58 @@ export default function Page() {
     const tagsToRemove = selectedTags.filter(currentTag => 
       !newSelectedTags.some(newTag => newTag.TagID === currentTag.TagID)
     );
-
+    console.log(tagsToAdd, tagsToRemove)
     // Process additions
-    for (const tagToAdd of tagsToAdd) {
-      try {
-        const response = await fetch('/nehrfe/demo/patient/addTag', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            MPIID: patient.MPIID, 
-            tagID: tagToAdd.TagID,
-            tagName: tagToAdd.TagName
-          })
-        });
-        
-        if (response.ok) {
-          console.log("add ok");
-        } else {
-          console.error('Failed to add tag:', tagToAdd.TagName);
-          return; // Stop processing if an error occurs
-        }
-      } catch (error) {
-        console.error('Error adding tag:', error);
+
+   
+    try {
+      const response = await fetch('/nehrfe/demo/patient/addTag', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          MPIID: patient.MPIID, 
+          tags: tagsToAdd
+        })
+      });
+      
+      if (response.ok) {
+        console.log("add ok");
+      } else {
+        console.error('Failed to add tag:', tagsToAdd);
         return; // Stop processing if an error occurs
       }
+    } catch (error) {
+      console.error('Error adding tag:', error);
+      return; // Stop processing if an error occurs
     }
+
 
     // Process removals
-    for (const tagToRemove of tagsToRemove) {
-      try {
-        const response = await fetch('/nehrfe/demo/patient/removeTag', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            MPIID: patient.MPIID, 
-            tagID: tagToRemove.TagID,
-            tagName: tagToRemove.TagName
-          })
-        });
-        
-        if (response.ok) {
-          console.log("remove ok");
-        } else {
-          console.error('Failed to remove tag:', tagToRemove.TagName);
-          return; // Stop processing if an error occurs
-        }
-      } catch (error) {
-        console.error('Error removing tag:', error);
+    try {
+      const response = await fetch('/nehrfe/demo/patient/removeTag', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          MPIID: patient.MPIID, 
+          tags: tagsToRemove
+        })
+      });
+      
+      if (response.ok) {
+        console.log("remove ok");
+      } else {
+        console.error('Failed to remove tag:', tagsToRemove);
         return; // Stop processing if an error occurs
       }
+    } catch (error) {
+      console.error('Error removing tag:', error);
+      return; // Stop processing if an error occurs
     }
+  
 
     // Only update state if all API calls were successful
     setSelectedTags(newSelectedTags);
